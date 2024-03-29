@@ -1,0 +1,15 @@
+For user we need following data:
+    1. email (required) (type: String)
+    2. name (required) (type: String)
+    3. otp  (type: Array)
+
+For questions we need following data:
+    1. quizCode (required) (type: String)
+    2. quizContent (required) (type: String)
+    3. quizOptions (required) (type: Array)
+    4. correctAns (required) (type: String)
+
+For quiz we need following data:
+    1. quizName (required) (type: String)
+    2. quizCode (required) (type: String)
+    3. questionList (type: Array)
