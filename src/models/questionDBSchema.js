@@ -16,13 +16,13 @@ const questionSchema = new Schema(
       },
       required: true,
     },
-    
-    quesContent: {
+
+    ques: {
       type: String,
       required: true,
     },
 
-    quesOptions: {
+    options: {
       type: Array,
       default: [],
       required: true,

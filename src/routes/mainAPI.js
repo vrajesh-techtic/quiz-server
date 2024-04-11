@@ -12,6 +12,8 @@ const {
   getSpecificQuestion,
   deleteQuestion,
   updateQuestion,
+  totalQuestions,
+  findQuestion,
 } = require("../controller/questionsCRUD");
 const {
   createQuiz,
@@ -20,6 +22,7 @@ const {
   updateQuiz,
 } = require("../controller/quizzesCRUD");
 const { loginUser, logoutUser } = require("../controller/participantAuth");
+const { createDept, getAllDept } = require("../controller/deptCRUD");
 
 const routes = express.Router();
 
@@ -50,6 +53,8 @@ routes.post("/add-question", addQuestion);
 // API to get all questions from database
 routes.post("/get-all-questions", getAllQuestions);
 
+routes.get("/count-questions", totalQuestions);
+
 // API to fetch particular question
 routes.post("/get-question:id", getSpecificQuestion);
 
@@ -57,7 +62,9 @@ routes.post("/get-question:id", getSpecificQuestion);
 routes.post("/delete-question:id", deleteQuestion);
 
 // API to update particular question
-routes.post("/update-question:id", updateQuestion);
+routes.post("/update-question", updateQuestion);
+
+routes.post("/find-question", findQuestion);
 
 //API to create new  quiz
 routes.post("/create-quiz", createQuiz);
@@ -70,5 +77,9 @@ routes.post("/get-quiz:id", getQuiz);
 
 //API to update quiz
 routes.post("/update-quiz:id", updateQuiz);
+
+routes.post("/create-dept", createDept);
+
+routes.get("/get-dept-list", getAllDept);
 
 module.exports = routes;

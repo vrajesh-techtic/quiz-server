@@ -4,6 +4,7 @@ const { ObjectId } = require("mongodb");
 // function to add new question
 const addQuestion = async (req, res) => {
   const quesArr = req.body;
+
   try {
     const query = await questions.insertMany(quesArr);
 
@@ -21,9 +22,20 @@ const addQuestion = async (req, res) => {
 // function to get all questions present in database
 const getAllQuestions = async (req, res) => {
   try {
-    const query = await questions.find({}, { _id: 0 });
+    const query = await questions.find({});
 
     res.send({ status: true, data: query, noOfQuestions: query.length });
+  } catch (error) {
+    console.log(error.message);
+    res.send({ status: false, message: error.message });
+  }
+};
+
+const totalQuestions = async (req, res) => {
+  try {
+    const query = await questions.countDocuments();
+
+    res.send({ status: true, data: query });
   } catch (error) {
     console.log(error.message);
     res.send({ status: false, message: error.message });
@@ -48,17 +60,17 @@ const getSpecificQuestion = async (req, res) => {
 };
 
 const updateQuestion = async (req, res) => {
-  const quesId = new ObjectId(req.params.id.slice(1, req.params.id.length));
+  const quesId = new ObjectId(req.body.quesId);
   const quizCode = req.body.quizCode;
-  const quesContent = req.body.quesContent;
-  const quesOptions = req.body.quesOptions;
+  const ques = req.body.ques;
+  const options = req.body.options;
   const correctAns = req.body.correctAns;
 
   try {
     const query = await questions.findByIdAndUpdate(quesId, {
       quizCode: quizCode,
-      quesContent: quesContent,
-      quesOptions: quesOptions,
+      ques: ques,
+      options: options,
       correctAns: correctAns,
     });
 
@@ -69,6 +81,18 @@ const updateQuestion = async (req, res) => {
     } else {
       res.send({ status: false, message: "Question not found!" });
     }
+  } catch (error) {
+    res.send({ status: false, message: error.message });
+  }
+};
+
+const findQuestion = async (req, res) => {
+  const quesId = new ObjectId(req.body._id);
+
+  try {
+    const query = await questions.findById(quesId);
+    if (query) res.send({ status: true, message: "Question exists" });
+    else res.send({ status: false, message: "Question not found !" });
   } catch (error) {
     res.send({ status: false, message: error.message });
   }
@@ -93,4 +117,6 @@ module.exports = {
   getSpecificQuestion,
   deleteQuestion,
   updateQuestion,
+  totalQuestions,
+  findQuestion,
 };

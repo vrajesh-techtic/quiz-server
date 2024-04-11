@@ -9,10 +9,9 @@ function connectDB() {
     .then(() => {
       console.log("database connected!");
     })
-    .catch((error) => { 
+    .catch((error) => {
       console.error(error.message);
     });
 }
 
 module.exports = { connectDB };
- 

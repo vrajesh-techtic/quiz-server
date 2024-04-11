@@ -6,13 +6,16 @@ const { questions } = require("../models/questionDBSchema");
 const createQuiz = async (req, res) => {
   const quizName = req.body.quizName;
   const quizCode = req.body.quizCode;
-  const questionList = req.body.questionList;
+  const deptName = req.body.deptName;
+
+  // const questionList = req.body.questionList;
 
   try {
     const query = await quizzes.create({
       quizName: quizName,
       quizCode: quizCode,
-      questionList: questionList,
+      deptName: deptName,
+      // questionList: questionList,
     });
 
     if (query !== null) {
@@ -69,7 +72,9 @@ const updateQuiz = async (req, res) => {
 
   const newQuizName = req.body.quizName;
   const newQuizCode = req.body.quizCode;
-  const newQuestionList = req.body.questionList;
+  const newDeptName = req.body.deptName;
+
+  // const newQuestionList = req.body.questionList;
 
   try {
     const oldQuizCode = (
@@ -81,7 +86,8 @@ const updateQuiz = async (req, res) => {
     const query = await quizzes.findByIdAndUpdate(quizId, {
       quizName: newQuizName,
       quizCode: newQuizCode,
-      questionList: newQuestionList,
+      deptName: newDeptName,
+      // questionList: newQuestionList,
     });
 
     const questionQuery = await questions.updateMany(

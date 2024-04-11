@@ -22,10 +22,15 @@ const quizSchema = new Schema(
       required: true,
     },
 
-    questionList: {
-      type: Array,
-      default: [],
+    deptName: {
+      type: String,
+      required: true,
     },
+
+    // questionList: {
+    //   type: Array,
+    //   default: [],
+    // },
   },
   { versionKey: false }
 );
