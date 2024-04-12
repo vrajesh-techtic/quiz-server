@@ -23,8 +23,23 @@ const {
 } = require("../controller/quizzesCRUD");
 const { loginUser, logoutUser } = require("../controller/participantAuth");
 const { createDept, getAllDept } = require("../controller/deptCRUD");
+const { addAdmin } = require("../controller/adminCRUD");
+const { sendOTP, verifyAdminOTP } = require("../controller/otpCRUD");
 
 const routes = express.Router();
+
+routes.post("/add-admin", addAdmin);
+
+
+
+// for sending OTP to send admin OTP Schema
+routes.post("/send-otp", sendOTP);
+
+// for sending OTP to verify admin OTP Schema
+routes.post("/verify-otp", verifyAdminOTP);
+
+
+
 
 //API to send email
 routes.post("/send-email", sendEmail);
@@ -33,7 +48,7 @@ routes.post("/send-email", sendEmail);
 routes.post("/add-user", addUser);
 
 //API to verify otp
-routes.post("/verify-otp", verifyOTP);
+// routes.post("/verify-otp", verifyOTP);
 
 // API to get user data
 routes.post("/get-user", getUser);
