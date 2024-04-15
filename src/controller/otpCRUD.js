@@ -2,6 +2,15 @@ const Joi = require("joi");
 const { otpDB } = require("../models/otpSchema");
 const { demoEmail } = require("../services/emailOTP");
 
+/*
+
+Required Parameters:
+
+1. email (unique)
+2. otp
+
+*/
+
 const sendOTP = async (req, res) => {
   const schema = Joi.object({
     email: Joi.string().email().required(),

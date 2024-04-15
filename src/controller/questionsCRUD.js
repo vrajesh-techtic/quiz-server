@@ -1,6 +1,17 @@
 const { questions } = require("../models/questionDBSchema");
 const { ObjectId } = require("mongodb");
 
+/*
+
+Required Parameters:
+
+1. quizCode
+2. ques
+3. options []
+4. correctAns
+
+*/
+
 // function to add new question
 const addQuestion = async (req, res) => {
   const quesArr = req.body;

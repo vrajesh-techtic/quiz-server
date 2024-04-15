@@ -6,17 +6,13 @@ const otpSchema = new Schema(
   {
     email: {
       type: String,
+      unique: true,
       required: true,
     },
 
     otp: {
       type: Number,
       required: true,
-    },
-
-    isValid: {
-      type: Boolean,
-      required: false,
     },
   },
   { versionKey: false }

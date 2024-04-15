@@ -30,16 +30,11 @@ const routes = express.Router();
 
 routes.post("/add-admin", addAdmin);
 
-
-
 // for sending OTP to send admin OTP Schema
 routes.post("/send-otp", sendOTP);
 
 // for sending OTP to verify admin OTP Schema
 routes.post("/verify-otp", verifyAdminOTP);
-
-
-
 
 //API to send email
 routes.post("/send-email", sendEmail);

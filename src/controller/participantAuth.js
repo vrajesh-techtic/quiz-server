@@ -1,5 +1,14 @@
 const { users } = require("../models/userDBSchema");
 
+/*
+
+Required Parameters:
+
+1. email (unique)
+2. name
+
+*/
+
 const loginUser = async (req, res) => {
   const userEmail = req.body.userEmail;
   try {

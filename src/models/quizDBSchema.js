@@ -26,11 +26,6 @@ const quizSchema = new Schema(
       type: String,
       required: true,
     },
-
-    // questionList: {
-    //   type: Array,
-    //   default: [],
-    // },
   },
   { versionKey: false }
 );

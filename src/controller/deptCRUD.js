@@ -1,6 +1,14 @@
 const { ObjectId } = require("mongodb");
 const { dept } = require("../models/deptDBSchema");
 
+/*
+
+Required Parameters:
+
+1. deptName
+
+*/
+
 const createDept = async (req, res) => {
   const deptName = req.body.deptName;
 

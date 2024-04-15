@@ -1,20 +1,30 @@
 const Joi = require("joi");
 const { admin } = require("../models/adminSchema");
 
+/*
+
+Required Parameters:
+
+1. email (unique)
+2. name
+3. username (unique)
+4. password
+*/
+
 const addAdmin = async (req, res) => {
   const schema = Joi.object({
-    username: Joi.string().alphanum().required(),
-    name: Joi.string().required(),
+    email: Joi.string().email().required(),
+    username: Joi.string()
+      .alphanum()
+      .regex(new RegExp("^[A-Za-z]w{3,14}$"))
+      .required(),
+    name: Joi.string().alphanum().required(),
     password: Joi.string()
-      .regex( new 
-        RegExp(
-          "^(?-i)(?=^.{8,}$)((?!.*s)(?=.*[A-Z])(?=.*[a-z]))(?=(1)(?=.*d)|.*[^A-Za-z0-9])^.*$"
-        )
-      )
+      .regex(new RegExp("^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,32}$"))
       .required()
       .messages({
-        // "string.pattern.base":
-        //   "Password must have atleast one digit, one lowercase,uppercase & special character and length must be 8 to 32 characters ",
+        "string.pattern.base":
+          "Password must have atleast one digit, one lowercase,one uppercase & one special character and length must be 8 to 32 characters ",
         // "string.empty": "Password Can't be empty ",
         // "string.min": "Password must be of 8 to 32 characters.",
       }),
@@ -24,9 +34,24 @@ const addAdmin = async (req, res) => {
 
   const isValid = schema.validate(req.body);
 
-  res.send(isValid);
+  if (!isValid.error) {
+    const adminData = {
+      email: req.body.email,
+      name: req.body.name,
+      username: req.body.username,
+      password: req.body.password,
+    };
 
-  console.log("isValid", isValid);
+    try {
+      const query = await admin.create(adminData);
+
+      res.send({ status: true, message: query });
+    } catch (error) {
+      res.send({ status: false, message: error.message });
+    }
+  } else {
+    res.send({ status: false, message: isValid.error.details[0].message });
+  }
 
   //   if (!isValid.error) {
   //     // const obj = {

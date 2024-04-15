@@ -2,6 +2,16 @@ const { ObjectId } = require("mongodb");
 const { quizzes } = require("../models/quizDBSchema");
 const { questions } = require("../models/questionDBSchema");
 
+/*
+
+Required Parameters:
+
+1. quizName
+2. quizCode (unique)
+3. deptName
+
+*/
+
 // function to create new quiz
 const createQuiz = async (req, res) => {
   const quizName = req.body.quizName;

@@ -13,14 +13,6 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    isAuth: {
-      type: Boolean,
-      required: true,
-    },
-    otp: {
-      type: Array,
-      default: [],
-    },
   },
   { versionKey: false }
 );
