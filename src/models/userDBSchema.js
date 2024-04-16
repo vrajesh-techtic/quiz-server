@@ -13,6 +13,11 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    quizzes: {
+      type: Array,
+      required: true,
+      default: [],
+    },
   },
   { versionKey: false }
 );

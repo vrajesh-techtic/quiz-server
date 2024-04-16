@@ -14,6 +14,12 @@ const otpSchema = new Schema(
       type: Number,
       required: true,
     },
+
+    isValid: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   { versionKey: false }
 );

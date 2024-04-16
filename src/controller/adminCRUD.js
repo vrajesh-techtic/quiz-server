@@ -1,5 +1,13 @@
 const Joi = require("joi");
 const { admin } = require("../models/adminSchema");
+const { handleErrors } = require("../middleware/authMiddleware");
+const {
+  createAdminValidation,
+  updateAdminValidation,
+} = require("../middleware/validators");
+const { otpDB } = require("../models/otpSchema");
+const { ObjectId } = require("mongodb");
+const { isUserExist } = require("./otpCRUD");
 
 /*
 
@@ -11,47 +19,62 @@ Required Parameters:
 4. password
 */
 
-// For creating new admin 
+// For creating new admin
 const addAdmin = async (req, res) => {
-  const schema = Joi.object({
-    email: Joi.string().email().required(),
-    username: Joi.string()
-      .regex(new RegExp(/^[A-Za-z]\w{3,14}$/))
-      .required(),
-    name: Joi.string().regex(new RegExp("^[a-zA-Z]+$")).required(),
-    password: Joi.string()
-      .regex(new RegExp("^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,32}$"))
-      .required()
-      .messages({
-        "string.pattern.base":
-          "Password must have atleast one digit, one lowercase,one uppercase & one special character and length must be 8 to 32 characters ",
-      }),
-
-    confirmPassword: Joi.ref("password"),
-  });
-
-  const isValid = schema.validate(req.body);
+  const isValid = createAdminValidation(req.body);
 
   if (!isValid.error) {
-    const adminData = {
-      email: req.body.email,
-      name: req.body.name,
-      username: req.body.username,
-      password: req.body.password,
-    };
+    const resp = await isUserExist(req.body.email);
 
-    try {
-      const query = await admin.create(adminData);
+    if (resp.status) {
+      const adminData = {
+        email: req.body.email,
+        name: req.body.name,
+        username: req.body.username,
+        password: req.body.password,
+      };
 
-      res.send({ status: true, message: "User created Successfully!" });
-    } catch (error) {
-      res.send({ status: false, message: error.message });
+      try {
+        const query = await admin.create(adminData);
+
+        res.send({ status: true, message: "User created Successfully!" });
+      } catch (error) {
+        const errors = handleErrors(error);
+        res.send({ status: false, message: errors });
+      }
+    } else {
+      res.send(resp);
     }
   } else {
-    res.send({ status: false, message: isValid.error.details[0].message });
+    console.log("called");
+
+    const errors = handleErrors(isValid.error);
+    res.send({ status: false, message: errors });
   }
 };
 
+const updateAdmin = async (req, res) => {
+  const isValid = updateAdminValidation(req.body);
 
+  if (!isValid.error) {
+    const admin_id = new ObjectId(req.headers.admin_id);
 
-module.exports = { addAdmin };
+    const newAdminData = {
+      email: req.body.email,
+      name: req.body.name,
+      username: req.body.username,
+    };
+
+    const query = await admin.findByIdAndUpdate(
+      { _id: admin_id },
+      newAdminData
+    );
+
+    res.send({ status: true, message: "Profile updated Successfully!" });
+  } else {
+    const errors = handleErrors(isValid.error);
+    res.send({ status: false, message: errors });
+  }
+};
+
+module.exports = { addAdmin, updateAdmin };
