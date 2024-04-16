@@ -8,17 +8,22 @@ const createAdminValidation = (obj) => {
       "string.email": "Please enter valid email!",
     }),
     username: Joi.string()
-      .regex(new RegExp(/^[A-Za-z]\w{3,14}$/))
+      .regex(new RegExp(/^[A-Za-z]\w+$/))
+      .min(3)
+      .max(14)
       .required()
       .messages({
         "string.pattern.base": "Username must be alphanumeric only! ",
+        "string.min": "Username should be of minimum 3 characters",
+        "string.max": "Username should be of maximum 14 characters",
       }),
-    name: Joi.string().regex(new RegExp("^[a-zA-Z]+$")).required().messages({
+    name: Joi.string().regex(new RegExp("^[a-zA-Z ]+$")).required().messages({
       "string.pattern.base": "Name must be alphabets only! ",
     }),
     password: Joi.string()
       .required("Enter your password")
       .min(8)
+      .max(32)
       .custom((value, helpers) => {
         if (!/[a-z]/.test(value)) {
           return helpers.error("lowercase");
@@ -35,13 +40,23 @@ const createAdminValidation = (obj) => {
         return value;
       }, "password validation")
       .messages({
+        "string.min": "Password must have minimum 8 characters",
+        "string.max": "Password must have maximum 32 characters",
+
         lowercase: "Password must have atleast one lowercase character",
         uppercase: "Password must have atleast one uppercase character",
         number: "Password must have atleast one digit",
         special: "Password must have atleast one special character",
       }),
 
-    confirmPassword: Joi.ref("password"),
+    // confirmPassword: Joi.ref("password"),
+    confirmPassword: Joi.string()
+      .custom((value, helpers) => {
+        if (value !== obj.password) {
+          return helpers.error("notSame");
+        }
+      }, "confirm password")
+      .messages({ notSame: "Both passwords must be same!" }),
   });
 
   const isValid = schema.validate(obj);
@@ -73,7 +88,7 @@ const updateAdminValidation = (obj) => {
 };
 
 const addUserValidation = (obj) => {
-//   console.log(obj);
+  //   console.log(obj);
   const schema = Joi.object({
     email: Joi.string().email().required().messages({
       "string.email": "Please enter valid email!",
