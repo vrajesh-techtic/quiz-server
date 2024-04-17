@@ -1,6 +1,10 @@
 const Joi = require("joi");
 const { admin } = require("../models/adminSchema");
-const { handleErrors } = require("../middleware/authMiddleware");
+const {
+  handleErrors,
+  generateToken,
+  decryptToken,
+} = require("../middleware/authMiddleware");
 const {
   createAdminValidation,
   updateAdminValidation,
@@ -18,6 +22,19 @@ Required Parameters:
 3. username (unique)
 4. password
 */
+
+const isAdmin = async (id) => {
+  try {
+    const adminId = new ObjectId(id);
+    const query = await admin.findById(adminId, { _id: 0, password: 0 });
+
+    if (await query) {
+      return query;
+    }
+  } catch (error) {
+    res.send({ status: false, message: error.message });
+  }
+};
 
 // For creating new admin
 const addAdmin = async (req, res) => {
@@ -37,7 +54,15 @@ const addAdmin = async (req, res) => {
       try {
         const query = await admin.create(adminData);
 
-        res.send({ status: true, message: "User created Successfully!" });
+        const token = generateToken(query._id.valueOf());
+
+        res.cookie("JWT", token, { maxAge: 1000 * 60 * 60, httpOnly: true });
+        console.log("token", token);
+        res.send({
+          status: true,
+          message: "User created Successfully!",
+          token: token,
+        });
       } catch (error) {
         const errors = handleErrors(error);
         res.send({ status: false, message: errors });
@@ -77,4 +102,142 @@ const updateAdmin = async (req, res) => {
   }
 };
 
-module.exports = { addAdmin, updateAdmin };
+const getAdmin = async (req, res) => {
+  const token = req.body.token;
+  const id = decryptToken(token);
+  if (!id.status) {
+    res.send({ status: false, message: id.message });
+  }
+
+  const checkAdmin = await isAdmin(id.token);
+  console.log("checkAdmin", checkAdmin);
+  if (checkAdmin) {
+    const profileData = await admin.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(id.token),
+        },
+      },
+      {
+        $lookup: {
+          from: "departments",
+          localField: "_id",
+          foreignField: "admin_id",
+          as: "departments",
+        },
+      },
+      {
+        $unwind: "$departments", // Unwind the departments array to denormalize
+      },
+      {
+        $lookup: {
+          from: "quizzes",
+          localField: "departments._id",
+          // Use department _id
+          foreignField: "dept_id",
+          as: "quizzes",
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          name: {
+            $first: "$name",
+          },
+          email: {
+            $first: "$email",
+          },
+          username: {
+            $first: "$username",
+          },
+          totalDepartments: {
+            $sum: 1,
+          },
+          // Count total departments
+          totalQuizzes: {
+            $sum: {
+              $size: "$quizzes",
+            },
+          }, // Count total quizzes
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+    ]);
+
+    res.send({ status: true, data: profileData[0] });
+  } else {
+    res.send({ status: false, message: "User does not exists!" });
+  }
+};
+
+const getDeptList = async (req, res) => {
+  const token = req.body.token;
+  const id = decryptToken(token);
+  if (!id.status) {
+    res.send({ status: false, message: id.message });
+  }
+
+  const checkAdmin = await isAdmin(id.token);
+  console.log("checkAdmin", checkAdmin);
+  if (checkAdmin) {
+    const deptList = await admin.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(id.token),
+        },
+      },
+      {
+        $lookup: {
+          from: "departments",
+          localField: "_id",
+          foreignField: "admin_id",
+          as: "depts",
+        },
+      },
+      {
+        $unwind: "$depts",
+      },
+      {
+        $lookup: {
+          from: "quizzes",
+          localField: "depts._id",
+          foreignField: "dept_id",
+          as: "quizzes",
+        },
+      },
+      {
+        $group: {
+          // _id: "$id",
+          _id: "$depts.deptName",
+          quizzes: { $push: "$quizzes.quizName" },
+        },
+      },
+      {
+        $project: {
+          "dept-name": "$_id",
+          quizzes: 1,
+          _id: 0,
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $arrayToObject: [
+              [{ k: "$dept-name", v: "$quizzes" }],
+            ],
+          },
+        },
+      },
+    ]);
+
+    res.send({ status: true, data: deptList });
+  } else {
+    res.send({ status: false, message: "User does not exists!" });
+  }
+};
+
+module.exports = { addAdmin, updateAdmin, getAdmin, getDeptList };
