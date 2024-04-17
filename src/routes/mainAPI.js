@@ -23,7 +23,7 @@ const {
 } = require("../controller/quizzesCRUD");
 const { loginUser, logoutUser } = require("../controller/participantAuth");
 const { createDept, getAllDept } = require("../controller/deptCRUD");
-const { addAdmin, updateAdmin, getAdmin, getDeptList } = require("../controller/adminCRUD");
+const { addAdmin, updateAdmin, getAdmin, getDeptList, deleteAdmin } = require("../controller/adminCRUD");
 const {
   sendOTP,
   verifyAdminOTP,
@@ -36,6 +36,8 @@ const routes = express.Router();
 routes.post("/add-admin", addAdmin);
 
 routes.post("/update-admin", updateAdmin);
+
+routes.post("/delete-admin", deleteAdmin);
 
 routes.post("/get-admin", getAdmin);
 

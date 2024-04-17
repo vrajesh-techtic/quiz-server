@@ -79,23 +79,39 @@ const addAdmin = async (req, res) => {
 };
 
 const updateAdmin = async (req, res) => {
-  const isValid = updateAdminValidation(req.body);
+  console.log("req.body.data", req.body.data);
+  const isValid = updateAdminValidation(req.body.data);
 
   if (!isValid.error) {
-    const admin_id = new ObjectId(req.headers.admin_id);
+    const token = req.body.token;
+    const id = decryptToken(token);
+    if (!id.status) {
+      res.send({ status: false, message: id.message });
+    }
 
-    const newAdminData = {
-      email: req.body.email,
-      name: req.body.name,
-      username: req.body.username,
-    };
+    const checkAdmin = await isAdmin(id.token);
+    console.log("checkAdmin", checkAdmin);
 
-    const query = await admin.findByIdAndUpdate(
-      { _id: admin_id },
-      newAdminData
-    );
+    if (checkAdmin) {
+      const admin_id = new ObjectId(id.token);
 
-    res.send({ status: true, message: "Profile updated Successfully!" });
+      const newAdminData = {
+        email: req.body.data.email,
+        name: req.body.data.name,
+        username: req.body.data.username,
+      };
+
+      const query = await admin.findByIdAndUpdate(
+        { _id: admin_id },
+        newAdminData
+      );
+
+      console.log("query", query);
+
+      res.send({ status: true, message: "Profile updated Successfully!" });
+    } else {
+      res.send({ status: false, message: "User does not exists!" });
+    }
   } else {
     const errors = handleErrors(isValid.error);
     res.send({ status: false, message: errors });
@@ -127,13 +143,19 @@ const getAdmin = async (req, res) => {
         },
       },
       {
-        $unwind: "$departments", // Unwind the departments array to denormalize
+        $addFields: {
+          departmentsEmpty: { $eq: [{ $size: "$departments" }, 0] },
+        },
+      },
+      {
+        $match: {
+          $or: [{ departmentsEmpty: true }, { departmentsEmpty: false }],
+        },
       },
       {
         $lookup: {
           from: "quizzes",
           localField: "departments._id",
-          // Use department _id
           foreignField: "dept_id",
           as: "quizzes",
         },
@@ -151,14 +173,13 @@ const getAdmin = async (req, res) => {
             $first: "$username",
           },
           totalDepartments: {
-            $sum: 1,
+            $sum: { $cond: [{ $not: "$departmentsEmpty" }, 1, 0] },
           },
-          // Count total departments
           totalQuizzes: {
             $sum: {
-              $size: "$quizzes",
+              $cond: [{ $not: "$departmentsEmpty" }, { $size: "$quizzes" }, 0],
             },
-          }, // Count total quizzes
+          },
         },
       },
       {
@@ -226,9 +247,7 @@ const getDeptList = async (req, res) => {
       {
         $replaceRoot: {
           newRoot: {
-            $arrayToObject: [
-              [{ k: "$dept-name", v: "$quizzes" }],
-            ],
+            $arrayToObject: [[{ k: "$dept-name", v: "$quizzes" }]],
           },
         },
       },
@@ -240,4 +259,23 @@ const getDeptList = async (req, res) => {
   }
 };
 
-module.exports = { addAdmin, updateAdmin, getAdmin, getDeptList };
+const deleteAdmin = async (req, res) => {
+  const token = req.body.token;
+  const id = decryptToken(token);
+
+  if (!id.status) {
+    res.send({ status: false, message: id.message });
+  }
+
+  const checkAdmin = await isAdmin(id.token);
+  console.log("checkAdmin", checkAdmin);
+  if (checkAdmin) {
+    const query = await admin.findByIdAndDelete(id.token);
+
+    res.send({ status: true, message: "Account deleted Successfully!" });
+  } else {
+    res.send({ status: false, message: "User does not exists!" });
+  }
+};
+
+module.exports = { addAdmin, updateAdmin, getAdmin, getDeptList, deleteAdmin };
