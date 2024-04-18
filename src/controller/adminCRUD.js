@@ -4,6 +4,7 @@ const {
   handleErrors,
   generateToken,
   decryptToken,
+  verifyPassword,
 } = require("../middleware/authMiddleware");
 const {
   createAdminValidation,
@@ -56,8 +57,6 @@ const addAdmin = async (req, res) => {
 
         const token = generateToken(query._id.valueOf());
 
-        res.cookie("JWT", token, { maxAge: 1000 * 60 * 60, httpOnly: true });
-        console.log("token", token);
         res.send({
           status: true,
           message: "User created Successfully!",
@@ -117,8 +116,7 @@ const updateAdmin = async (req, res) => {
   }
 };
 
-
-// To fetch Profile Data 
+// To fetch Profile Data
 const getAdmin = async (req, res) => {
   const token = req.body.token;
   const id = decryptToken(token);
@@ -132,16 +130,16 @@ const getAdmin = async (req, res) => {
     const profileData = await admin.aggregate([
       {
         $match: {
-          _id: new ObjectId(id.token)
-        }
+          _id: new ObjectId(id.token),
+        },
       },
       {
         $lookup: {
           from: "departments",
           localField: "_id",
           foreignField: "admin_id",
-          as: "departments"
-        }
+          as: "departments",
+        },
       },
       {
         $addFields: {
@@ -149,18 +147,18 @@ const getAdmin = async (req, res) => {
             $cond: {
               if: { $isArray: "$departments" },
               then: { $size: "$departments" },
-              else: 0
-            }
-          }
-        }
+              else: 0,
+            },
+          },
+        },
       },
       {
         $lookup: {
           from: "quizzes",
           localField: "departments._id",
           foreignField: "deptId",
-          as: "quizzes"
-        }
+          as: "quizzes",
+        },
       },
       {
         $addFields: {
@@ -168,10 +166,10 @@ const getAdmin = async (req, res) => {
             $cond: {
               if: { $isArray: "$quizzes" },
               then: { $size: "$quizzes" },
-              else: 0
-            }
-          }
-        }
+              else: 0,
+            },
+          },
+        },
       },
       {
         $group: {
@@ -180,8 +178,8 @@ const getAdmin = async (req, res) => {
           email: { $first: "$email" },
           username: { $first: "$username" },
           totalDepartments: { $max: "$totalDepartments" },
-          totalQuizzes: { $max: "$totalQuizzes" }
-        }
+          totalQuizzes: { $max: "$totalQuizzes" },
+        },
       },
       {
         $project: {
@@ -190,11 +188,10 @@ const getAdmin = async (req, res) => {
           email: 1,
           username: 1,
           totalDepartments: 1,
-          totalQuizzes: 1
-        }
-      }
-    ]
-    );
+          totalQuizzes: 1,
+        },
+      },
+    ]);
 
     res.send({ status: true, data: profileData[0] });
   } else {
@@ -285,4 +282,33 @@ const deleteAdmin = async (req, res) => {
   }
 };
 
-module.exports = { addAdmin, updateAdmin, getAdmin, getDeptList, deleteAdmin };
+const loginAdmin = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const query = await admin.findOne({ email });
+    if (query !== null) {
+      const isVerified = await verifyPassword(password, query.password);
+      const token = generateToken(query._id.valueOf());
+
+      if (isVerified) {
+        res.send({ status: true, message: "Valid User!", token });
+      } else {
+        res.send({ status: false, message: "Incorrect Password!" });
+      }
+    } else {
+      res.send({ status: false, message: "User not Registered!" });
+    }
+  } catch (error) {
+    res.send({ status: false, message: error.message });
+  }
+};
+
+module.exports = {
+  addAdmin,
+  updateAdmin,
+  getAdmin,
+  getDeptList,
+  deleteAdmin,
+  loginAdmin,
+};

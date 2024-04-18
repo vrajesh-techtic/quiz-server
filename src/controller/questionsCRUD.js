@@ -17,6 +17,20 @@ const isAdmin = async (id) => {
   }
 };
 
+const isQuiz = async (quizCode) => {
+  try {
+    const query = await quizzes.findOne({ quizCode });
+
+    if (query !== null) {
+      return { status: true, message: "Quiz Exists!" };
+    } else {
+      return { status: false, message: "Quiz not found!" };
+    }
+  } catch (error) {
+    return { status: false, message: error.message };
+  }
+};
+
 /*
 
 Required Parameters:
@@ -104,8 +118,6 @@ const updateQuestion = async (req, res) => {
         correctAns: correctAns,
       });
 
-      console.log(query);
-
       if (query) {
         res.send({ status: true, message: "Question updated successfully" });
       } else {
@@ -190,48 +202,56 @@ const getAllQuestions = async (req, res) => {
   }
   const checkAdmin = await isAdmin(id.token);
 
+  const checkQuiz = await isQuiz(quizCode);
+
   if (checkAdmin) {
     try {
-      const list = await quizzes.aggregate([
-        {
-          $match: {
-            quizCode: quizCode,
+      if (checkQuiz.status) {
+        const list = await quizzes.aggregate([
+          {
+            $match: {
+              quizCode: quizCode,
+            },
           },
-        },
-        {
-          $lookup: {
-            from: "questions",
-            localField: "quizCode",
-            foreignField: "quizCode",
-            as: "questions",
+          {
+            $lookup: {
+              from: "questions",
+              localField: "quizCode",
+              foreignField: "quizCode",
+              as: "questions",
+            },
           },
-        },
-        {
-          $unwind: "$questions",
-        },
-        {
-          $group: {
-            _id: null,
-            allQuestions: {
-              $push: {
-                ques: "$questions.ques",
-                options: "$questions.options",
+          {
+            $unwind: "$questions",
+          },
+          {
+            $group: {
+              _id: null,
+              allQuestions: {
+                $push: {
+                  ques: "$questions.ques",
+                  options: "$questions.options",
+                  correctAns: "$questions.correctAns",
+                  _id: "$questions._id",
+                },
               },
             },
           },
-        },
-        {
-          $project: {
-            _id: 0,
-            allQuestions: 1,
+          {
+            $project: {
+              _id: 0,
+              allQuestions: 1,
+            },
           },
-        },
-      ]);
-
-      if (list) {
-        res.send({ status: true, data: list[0] });
+        ]);
+        if (list.length !== 0) {
+          console.log("list", list);
+          res.send({ status: true, data: list[0] });
+        } else if (list.length === 0) {
+          res.send({ status: false, message: "No Questions added!" });
+        }
       } else {
-        res.send({ status: false, message: "Quiz not found!" });
+        res.send(checkQuiz);
       }
     } catch (error) {
       res.send({ status: false, message: error.message });

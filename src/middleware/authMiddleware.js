@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const env = require("dotenv").config();
+const bcrypt = require("bcrypt");
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -31,4 +32,10 @@ const decryptToken = (token) => {
   }
 };
 
-module.exports = { handleErrors, generateToken, decryptToken };
+const verifyPassword = async (password, hashedPwd) => {
+  const isValid = await bcrypt.compare(password, hashedPwd);
+
+  return isValid;
+};
+
+module.exports = { handleErrors, generateToken, decryptToken, verifyPassword };

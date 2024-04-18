@@ -34,6 +34,7 @@ const {
   getAdmin,
   getDeptList,
   deleteAdmin,
+  loginAdmin,
 } = require("../controller/adminCRUD");
 const {
   sendOTP,
@@ -46,6 +47,8 @@ const { createQuiz } = require("../controller/quizzesCRUD");
 const routes = express.Router();
 
 routes.post("/add-admin", addAdmin);
+
+routes.post("/login-admin", loginAdmin);
 
 routes.post("/update-admin", updateAdmin);
 
