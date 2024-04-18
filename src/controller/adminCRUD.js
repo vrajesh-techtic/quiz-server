@@ -90,7 +90,6 @@ const updateAdmin = async (req, res) => {
     }
 
     const checkAdmin = await isAdmin(id.token);
-    console.log("checkAdmin", checkAdmin);
 
     if (checkAdmin) {
       const admin_id = new ObjectId(id.token);
@@ -118,6 +117,8 @@ const updateAdmin = async (req, res) => {
   }
 };
 
+
+// To fetch Profile Data 
 const getAdmin = async (req, res) => {
   const token = req.body.token;
   const id = decryptToken(token);
@@ -126,68 +127,74 @@ const getAdmin = async (req, res) => {
   }
 
   const checkAdmin = await isAdmin(id.token);
-  console.log("checkAdmin", checkAdmin);
+
   if (checkAdmin) {
     const profileData = await admin.aggregate([
       {
         $match: {
-          _id: new ObjectId(id.token),
-        },
+          _id: new ObjectId(id.token)
+        }
       },
       {
         $lookup: {
           from: "departments",
           localField: "_id",
           foreignField: "admin_id",
-          as: "departments",
-        },
+          as: "departments"
+        }
       },
       {
         $addFields: {
-          departmentsEmpty: { $eq: [{ $size: "$departments" }, 0] },
-        },
-      },
-      {
-        $match: {
-          $or: [{ departmentsEmpty: true }, { departmentsEmpty: false }],
-        },
+          totalDepartments: {
+            $cond: {
+              if: { $isArray: "$departments" },
+              then: { $size: "$departments" },
+              else: 0
+            }
+          }
+        }
       },
       {
         $lookup: {
           from: "quizzes",
           localField: "departments._id",
-          foreignField: "dept_id",
-          as: "quizzes",
-        },
+          foreignField: "deptId",
+          as: "quizzes"
+        }
+      },
+      {
+        $addFields: {
+          totalQuizzes: {
+            $cond: {
+              if: { $isArray: "$quizzes" },
+              then: { $size: "$quizzes" },
+              else: 0
+            }
+          }
+        }
       },
       {
         $group: {
           _id: "$_id",
-          name: {
-            $first: "$name",
-          },
-          email: {
-            $first: "$email",
-          },
-          username: {
-            $first: "$username",
-          },
-          totalDepartments: {
-            $sum: { $cond: [{ $not: "$departmentsEmpty" }, 1, 0] },
-          },
-          totalQuizzes: {
-            $sum: {
-              $cond: [{ $not: "$departmentsEmpty" }, { $size: "$quizzes" }, 0],
-            },
-          },
-        },
+          name: { $first: "$name" },
+          email: { $first: "$email" },
+          username: { $first: "$username" },
+          totalDepartments: { $max: "$totalDepartments" },
+          totalQuizzes: { $max: "$totalQuizzes" }
+        }
       },
       {
         $project: {
           _id: 0,
-        },
-      },
-    ]);
+          name: 1,
+          email: 1,
+          username: 1,
+          totalDepartments: 1,
+          totalQuizzes: 1
+        }
+      }
+    ]
+    );
 
     res.send({ status: true, data: profileData[0] });
   } else {
@@ -203,7 +210,7 @@ const getDeptList = async (req, res) => {
   }
 
   const checkAdmin = await isAdmin(id.token);
-  console.log("checkAdmin", checkAdmin);
+
   if (checkAdmin) {
     const deptList = await admin.aggregate([
       {
@@ -268,7 +275,7 @@ const deleteAdmin = async (req, res) => {
   }
 
   const checkAdmin = await isAdmin(id.token);
-  console.log("checkAdmin", checkAdmin);
+
   if (checkAdmin) {
     const query = await admin.findByIdAndDelete(id.token);
 

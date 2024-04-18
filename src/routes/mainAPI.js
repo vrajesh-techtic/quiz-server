@@ -15,21 +15,33 @@ const {
   totalQuestions,
   findQuestion,
 } = require("../controller/questionsCRUD");
-const {
-  createQuiz,
-  deleteQuiz,
-  getQuiz,
-  updateQuiz,
-} = require("../controller/quizzesCRUD");
+// const {
+//   createQuiz,
+//   deleteQuiz,
+//   getQuiz,
+//   updateQuiz,
+// } = require("../controller/quizzesCRUD");
 const { loginUser, logoutUser } = require("../controller/participantAuth");
-const { createDept, getAllDept } = require("../controller/deptCRUD");
-const { addAdmin, updateAdmin, getAdmin, getDeptList, deleteAdmin } = require("../controller/adminCRUD");
+const {
+  createDept,
+  deptList,
+  getQuizList,
+  deleteDept,
+} = require("../controller/deptCRUD");
+const {
+  addAdmin,
+  updateAdmin,
+  getAdmin,
+  getDeptList,
+  deleteAdmin,
+} = require("../controller/adminCRUD");
 const {
   sendOTP,
   verifyAdminOTP,
   verifyUser,
 } = require("../controller/otpCRUD");
 const { generateToken, decryptToken } = require("../middleware/authMiddleware");
+const { createQuiz } = require("../controller/quizzesCRUD");
 
 const routes = express.Router();
 
@@ -40,8 +52,6 @@ routes.post("/update-admin", updateAdmin);
 routes.post("/delete-admin", deleteAdmin);
 
 routes.post("/get-admin", getAdmin);
-
-routes.post('/get-library', getDeptList)
 
 routes.post("/gen-token", generateToken);
 
@@ -85,10 +95,10 @@ routes.post("/get-all-questions", getAllQuestions);
 routes.get("/count-questions", totalQuestions);
 
 // API to fetch particular question
-routes.post("/get-question:id", getSpecificQuestion);
+routes.post("/get-question", getSpecificQuestion);
 
 // API to delete particular question
-routes.post("/delete-question:id", deleteQuestion);
+routes.post("/delete-question", deleteQuestion);
 
 // API to update particular question
 routes.post("/update-question", updateQuestion);
@@ -98,17 +108,22 @@ routes.post("/find-question", findQuestion);
 //API to create new  quiz
 routes.post("/create-quiz", createQuiz);
 
-// API to delete particular quiz
-routes.post("/delete-quiz:id", deleteQuiz);
+// // API to delete particular quiz
+// routes.post("/delete-quiz:id", deleteQuiz);
 
-//API to get quiz data
-routes.post("/get-quiz:id", getQuiz);
+// //API to get quiz data
+// routes.post("/get-quiz:id", getQuiz);
 
-//API to update quiz
-routes.post("/update-quiz:id", updateQuiz);
+// //API to update quiz
+// routes.post("/update-quiz:id", updateQuiz);
 
 routes.post("/create-dept", createDept);
+routes.post("/delete-dept", deleteDept);
 
-routes.get("/get-dept-list", getAllDept);
+routes.post("/get-dept-list", deptList);
+
+routes.post("/get-library", getDeptList);
+
+routes.post("/get-quiz-list", getQuizList);
 
 module.exports = routes;

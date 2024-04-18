@@ -28,7 +28,7 @@ const questionSchema = new Schema(
     },
 
     correctAns: {
-      type: String,
+      type: Number,
       required: true,
     },
   },
