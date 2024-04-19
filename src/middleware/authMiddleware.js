@@ -17,7 +17,7 @@ const handleErrors = (errors) => {
 };
 
 const generateToken = (id) => {
-  console.log("SCERET_KEY", SECRET_KEY);
+  // console.log("SCERET_KEY", SECRET_KEY);
 
   const encryptedToken = jwt.sign(id, SECRET_KEY);
   return encryptedToken;

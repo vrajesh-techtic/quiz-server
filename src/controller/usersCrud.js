@@ -10,6 +10,8 @@ const isUserPresent = async (email) => {
   const isPresent = await users.findOne({
     email,
   });
+
+  console.log("isPresent", isPresent);
   if (isPresent !== null) {
     return true;
   } else {
@@ -22,7 +24,7 @@ const isQuizAttempted = async (email, quizCode) => {
     email: email,
     quizzes: { $in: quizCode },
   });
-
+  console.log("isValid", isValid);
   if (isValid !== null) {
     return true;
   } else {
@@ -84,7 +86,7 @@ const addUser = async (req, res) => {
 
               // console.log("addQuizQuery", );
               if (addQuizQuery) {
-                const token = await generateToken(addQuizQuery._id.valueOf());
+                const token = generateToken(addQuizQuery._id.valueOf());
 
                 res.send({
                   status: true,
@@ -92,6 +94,8 @@ const addUser = async (req, res) => {
                   token: token,
                   message: "New quiz added to user's DB!",
                 });
+              } else {
+                res.send({ status: false, message: "Error" });
               }
             } catch (error) {
               res.status({ status: false, message: error.message });
@@ -100,10 +104,14 @@ const addUser = async (req, res) => {
         } else {
           // Add new user & quiz
           try {
-            const addQuery = await users.create(adminData);
+            const addQuery = await users.create({
+              email: adminData.email,
+              name: adminData.name,
+              quizzes: [adminData.quizCode],
+            });
 
             if (addQuery) {
-              const token = generateToken(addQuery._id);
+              const token = generateToken(addQuery._id.valueOf());
 
               res.send({
                 status: true,
@@ -111,6 +119,8 @@ const addUser = async (req, res) => {
                 token: token,
                 message: "New User!",
               });
+            } else {
+              res.send({ status: false, message: "Error" });
             }
           } catch (error) {
             res.status({ status: false, message: error.message });
@@ -123,10 +133,6 @@ const addUser = async (req, res) => {
     } else {
       res.send(isQuiz);
     }
-
-    // } else {
-    //   res.send(resp);
-    // }
   } else {
     const errors = handleErrors(isValid.error);
     res.send({ status: false, message: errors });
