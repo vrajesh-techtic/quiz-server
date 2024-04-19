@@ -245,13 +245,13 @@ const getAllQuestions = async (req, res) => {
           },
         ]);
         if (list.length !== 0) {
-          console.log("list", list);
+          // console.log("list", list);
           res.send({ status: true, data: list[0] });
         } else if (list.length === 0) {
           res.send({ status: false, message: "No Questions added!" });
         }
       } else {
-        res.send(checkQuiz);
+        res.send({ status: false, message: "Please save the Quiz first!" });
       }
     } catch (error) {
       res.send({ status: false, message: error.message });

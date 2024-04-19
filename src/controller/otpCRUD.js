@@ -72,7 +72,7 @@ const sendOTP = async (req, res) => {
           isValid: false,
         });
 
-        // await demoEmail(req.body.email, otp);
+        demoEmail(req.body.email, otp);
 
         res.send({ status: true, message: "OTP sent Successfully!" });
       } catch (error) {
@@ -87,7 +87,7 @@ const sendOTP = async (req, res) => {
         );
 
         // send email function
-        // await demoEmail(req.body.email, otp);
+        demoEmail(req.body.email, otp);
 
         res.send({ status: true, message: "OTP sent Successfully!" });
       } catch (error) {
