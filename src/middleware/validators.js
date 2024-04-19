@@ -10,12 +10,10 @@ const createAdminValidation = (obj) => {
     username: Joi.string()
       .regex(new RegExp(/^[A-Za-z]\w+$/))
       .min(3)
-      .max(14)
       .required()
       .messages({
         "string.pattern.base": "Username must be alphanumeric only! ",
         "string.min": "Username should be of minimum 3 characters",
-        "string.max": "Username should be of maximum 14 characters",
       }),
     name: Joi.string().regex(new RegExp("^[a-zA-Z ]+$")).required().messages({
       "string.pattern.base": "Name must be alphabets only! ",

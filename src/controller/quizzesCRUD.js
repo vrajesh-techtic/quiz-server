@@ -17,6 +17,64 @@ const isAdmin = async (id) => {
   }
 };
 
+const isQuiz = async (req, res) => {
+  const quizCode = req.body.quizCode;
+  const token = req.body.token;
+  const id = decryptToken(token);
+  if (!id.status) {
+    res.send({ status: false, message: id.message });
+  }
+  const checkAdmin = await isAdmin(id.token);
+
+  if (checkAdmin) {
+    const query = await quizzes.aggregate([
+      {
+        $match: {
+          quizCode: quizCode,
+        },
+      },
+      {
+        $lookup: {
+          from: "departments",
+          localField: "deptId",
+          foreignField: "_id",
+          as: "deptData",
+        },
+      },
+      {
+        $unwind: "$deptData",
+      },
+      {
+        $match: {
+          "deptData.admin_id": new ObjectId(id.token),
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          quizName: { $first: "$quizName" },
+          deptName: { $first: "$deptName" },
+          admin_id: { $first: "$deptData.admin_id" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          admin_id: 0,
+        },
+      },
+    ]);
+
+    if (query.length === 0) {
+      res.send({ status: false, message: "Quiz does not exists!" });
+    } else {
+      res.send({ status: true, message: "Quiz found", data: query[0] });
+    }
+  } else {
+    res.send({ status: false, message: "User does not exists!" });
+  }
+};
+
 /*
 
 Required Parameters:
@@ -57,9 +115,39 @@ const createQuiz = async (req, res) => {
   }
 };
 
+const updateQuiz = async (req, res) => {
+  const quizCode = req.body.quizCode;
+  const newQuizName = req.body.quizName;
+  const token = req.body.token;
+  const id = decryptToken(token);
+  if (!id.status) {
+    res.send({ status: false, message: id.message });
+  }
+  const checkAdmin = await isAdmin(id.token);
+
+  if (checkAdmin) {
+    try {
+      const query = await quizzes.findOneAndUpdate(
+        { quizCode },
+        { quizName: newQuizName }
+      );
+
+      if (query) {
+        res.send({ status: true, message: " Quiz name updated!" });
+      } else {
+        res.send({ status: false, message: "Quiz not found!" });
+      }
+    } catch (error) {
+      res.send({ status: false, message: "Quiz not found!" });
+    }
+  } else {
+    res.send({ status: false, message: "User does not exists!" });
+  }
+};
+
 // function get particular quiz
 // const getQuiz = async (req, res) => {
-//   const quizId = req.params.id.slice(1, req.params.id.length);
+//   const quizCode = req.body.quizCode;
 
 //   try {
 //     const query = await quizzes.aggregate([
@@ -153,4 +241,4 @@ const createQuiz = async (req, res) => {
 //   }
 // };
 
-module.exports = { createQuiz };
+module.exports = { createQuiz, isQuiz, updateQuiz };

@@ -3,6 +3,7 @@ const {
   getUser,
   verifyOTP,
   deleteUser,
+  getQuizData,
 } = require("../controller/usersCrud");
 const express = require("express");
 const { sendEmail } = require("../services/emailOTP");
@@ -42,7 +43,7 @@ const {
   verifyUser,
 } = require("../controller/otpCRUD");
 const { generateToken, decryptToken } = require("../middleware/authMiddleware");
-const { createQuiz } = require("../controller/quizzesCRUD");
+const { createQuiz, isQuiz, updateQuiz } = require("../controller/quizzesCRUD");
 
 const routes = express.Router();
 
@@ -83,6 +84,8 @@ routes.post("/get-user", getUser);
 // API to delete user
 routes.post("/delete-user", deleteUser);
 
+routes.post("/get-quiz-data", getQuizData);
+
 // API to check whether user is authenticated to access data or not
 routes.post("/login-user", loginUser);
 
@@ -114,11 +117,11 @@ routes.post("/create-quiz", createQuiz);
 // // API to delete particular quiz
 // routes.post("/delete-quiz:id", deleteQuiz);
 
-// //API to get quiz data
-// routes.post("/get-quiz:id", getQuiz);
+//API to get quiz data
+routes.post("/get-quiz", isQuiz);
 
 // //API to update quiz
-// routes.post("/update-quiz:id", updateQuiz);
+routes.post("/update-quiz", updateQuiz);
 
 routes.post("/create-dept", createDept);
 routes.post("/delete-dept", deleteDept);
