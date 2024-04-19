@@ -44,6 +44,7 @@ const {
 } = require("../controller/otpCRUD");
 const { generateToken, decryptToken } = require("../middleware/authMiddleware");
 const { createQuiz, isQuiz, updateQuiz } = require("../controller/quizzesCRUD");
+const { addLog } = require("../controller/attemptLogController");
 
 const routes = express.Router();
 
@@ -131,5 +132,7 @@ routes.post("/get-dept-list", deptList);
 routes.post("/get-library", getDeptList);
 
 routes.post("/get-quiz-list", getQuizList);
+
+routes.post("/attempt-question", addLog);
 
 module.exports = routes;
