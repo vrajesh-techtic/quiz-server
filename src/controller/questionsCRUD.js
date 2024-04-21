@@ -133,35 +133,35 @@ const updateQuestion = async (req, res) => {
 
 // To get total questions of a particular Quiz
 const totalQuestions = async (req, res) => {
-  const token = req.body.token;
+  // const token = req.body.token;
   const quizCode = req.body.quizCode;
-  const id = decryptToken(token);
-  if (!id.status) {
-    res.send({ status: false, message: id.message });
-  }
-  const checkAdmin = await isAdmin(id.token);
+  // const id = decryptToken(token);
+  // if (!id.status) {
+  //   res.send({ status: false, message: id.message });
+  // }
+  // const checkAdmin = await isAdmin(id.token);
 
-  if (checkAdmin) {
-    try {
-      const query = await questions.aggregate([
-        {
-          $match: {
-            quizCode,
-          },
+  // if (checkAdmin) {
+  try {
+    const query = await questions.aggregate([
+      {
+        $match: {
+          quizCode,
         },
-        {
-          $count: "totalQues",
-        },
-      ]);
+      },
+      {
+        $count: "totalQues",
+      },
+    ]);
 
-      res.send({ status: true, data: query });
-    } catch (error) {
-      console.log(error.message);
-      res.send({ status: false, message: error.message });
-    }
-  } else {
-    res.send({ status: false, message: "User does not exists!" });
+    res.send({ status: true, data: query[0] });
+  } catch (error) {
+    console.log(error.message);
+    res.send({ status: false, message: error.message });
   }
+  // } else {
+  //   res.send({ status: false, message: "User does not exists!" });
+  // }
 };
 
 // function to delete particular question

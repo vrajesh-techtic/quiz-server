@@ -45,6 +45,7 @@ const {
 const { generateToken, decryptToken } = require("../middleware/authMiddleware");
 const { createQuiz, isQuiz, updateQuiz } = require("../controller/quizzesCRUD");
 const { addLog } = require("../controller/attemptLogController");
+const { getResult } = require("../controller/resultController");
 
 const routes = express.Router();
 
@@ -99,7 +100,7 @@ routes.post("/add-question", addQuestion);
 // API to get all questions from database
 routes.post("/get-all-questions", getAllQuestions);
 
-routes.get("/count-questions", totalQuestions);
+routes.post("/count-questions", totalQuestions);
 
 // API to fetch particular question
 routes.post("/get-question", getSpecificQuestion);
@@ -134,5 +135,7 @@ routes.post("/get-library", getDeptList);
 routes.post("/get-quiz-list", getQuizList);
 
 routes.post("/attempt-question", addLog);
+
+routes.post("/get-result", getResult);
 
 module.exports = routes;

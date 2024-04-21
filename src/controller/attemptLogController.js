@@ -1,6 +1,7 @@
 const { ObjectId } = require("mongodb");
 const { users } = require("../models/userDBSchema");
 const { attemptSchema } = require("../models/attempt_log");
+const { decryptToken } = require("../middleware/authMiddleware");
 
 const validate = async (user_id, quizCode) => {
   try {
@@ -42,12 +43,12 @@ const updateAns = async (user_id, quesId, quizCode, userAns) => {
     );
 
     if (updateQuery !== null) {
-      res.send({ status: true, message: "Answer Updated!" });
+      return { status: true, message: "Answer Updated!" };
     } else {
-      res.send({ status: false, message: "Answer not updated!" });
+      return { status: false, message: "Answer not updated!" };
     }
   } catch (error) {
-    res.send({ status: false, message: error.message });
+    return { status: false, message: error.message };
   }
 };
 
@@ -61,32 +62,41 @@ const addAns = async (user_id, quesId, quizCode, userAns) => {
     });
 
     if (addQuery !== null) {
-      res.send({ status: true, message: "Answer Added!" });
+      return { status: true, message: "Answer Added!" };
     } else {
-      res.send({ status: false, message: "Answer not added!" });
+      return { status: false, message: "Answer not added!" };
     }
   } catch (error) {
-    res.send({ status: false, message: error.message });
+    return { status: false, message: error.message };
   }
 };
 
 const addLog = async (req, res) => {
   const { user_id, quesId, quizCode, userAns } = req.body;
-
+  // const token = req.body.token;
   try {
-    const isUserValid = await validate(user_id, quizCode);
+    const id = decryptToken(user_id);
+    if (!id.status) {
+      res.send({ status: false, message: id.message });
+    }
+    // console.log("id.token", id.token);
+    // const checkAdmin = await isAdmin(id.token);
+    const isUserValid = await validate(id.token, quizCode);
 
     if (isUserValid.status) {
-      const checkAttempted = await isAttempted(quesId, user_id);
+      // check if user has already attempted question
+      const checkAttempted = await isAttempted(quesId, id.token);
 
       if (checkAttempted.status) {
-        updateAns(user_id, quesId, quizCode, userAns);
+        res.send(await updateAns(id.token, quesId, quizCode, userAns));
       } else {
-        addAns(user_id, quesId, quizCode, userAns);
+        res.send(await addAns(id.token, quesId, quizCode, userAns));
       }
     } else {
       res.send(isUserValid);
     }
+
+    // check if user validated to attempt question
   } catch (error) {
     res.send({ status: false, message: error.message });
   }

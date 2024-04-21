@@ -264,6 +264,7 @@ const getQuizData = async (req, res) => {
           _id: null,
           allQuestions: {
             $push: {
+              _id: "$questions._id",
               ques: "$questions.ques",
               options: "$questions.options",
             },
