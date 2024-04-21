@@ -222,7 +222,7 @@ const addResult = async (obj) => {
     } else {
       const query = await resultSchema.create(obj);
 
-      return { status: true, data: query };
+      return { status: true, data: query, message: "Result generated!" };
     }
   } catch (error) {
     return { status: false, message: error.message };

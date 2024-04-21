@@ -92,7 +92,7 @@ const addUserValidation = (obj) => {
       "string.email": "Please enter valid email!",
     }),
 
-    name: Joi.string().regex(new RegExp("^[a-zA-Z]+$")).required().messages({
+    name: Joi.string().regex(new RegExp("^[a-zA-Z ]+$")).required().messages({
       "string.pattern.base": "Name must be alphabets only! ",
     }),
 

@@ -48,6 +48,8 @@ const isQuizExist = async (quizCode) => {
 const addUser = async (req, res) => {
   const isValid = addUserValidation(req.body);
 
+  console.log("isValid", isValid);
+
   if (!isValid.error) {
     // Check if user is verified with OTP
     // const resp = await isUserExist(req.body.email);
@@ -62,6 +64,10 @@ const addUser = async (req, res) => {
       name: req.body.name,
       quizCode: req.body.quizCode,
     };
+
+    console.log("isQuiz", isQuiz);
+    console.log("isUser", isUser);
+    console.log("attempted", attempted);
 
     if (isQuiz.status) {
       try {
