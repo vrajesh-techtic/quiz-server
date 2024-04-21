@@ -11,7 +11,6 @@ const isUserPresent = async (email) => {
     email,
   });
 
-  console.log("isPresent", isPresent);
   if (isPresent !== null) {
     return true;
   } else {
@@ -24,11 +23,11 @@ const isQuizAttempted = async (email, quizCode) => {
     email: email,
     quizzes: { $in: quizCode },
   });
-  console.log("isValid", isValid);
+
   if (isValid !== null) {
-    return true;
+    return { status: true, data: isValid };
   } else {
-    return false;
+    return { status: false };
   }
 };
 
@@ -67,11 +66,14 @@ const addUser = async (req, res) => {
     if (isQuiz.status) {
       try {
         if (isUser) {
-          if (attempted) {
+          if (attempted.status) {
             // quiz is already attempted
+            const token = generateToken(attempted.data._id.valueOf());
+
             res.send({
               status: true,
               isAttempted: true,
+              token,
               message: "Quiz already attempted by User!",
             });
           } else {

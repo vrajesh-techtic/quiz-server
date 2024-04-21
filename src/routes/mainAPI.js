@@ -45,7 +45,7 @@ const {
 const { generateToken, decryptToken } = require("../middleware/authMiddleware");
 const { createQuiz, isQuiz, updateQuiz } = require("../controller/quizzesCRUD");
 const { addLog } = require("../controller/attemptLogController");
-const { getResult } = require("../controller/resultController");
+const { getResult, leaderBoard } = require("../controller/resultController");
 
 const routes = express.Router();
 
@@ -137,5 +137,7 @@ routes.post("/get-quiz-list", getQuizList);
 routes.post("/attempt-question", addLog);
 
 routes.post("/get-result", getResult);
+
+routes.post("/leaderboard", leaderBoard);
 
 module.exports = routes;

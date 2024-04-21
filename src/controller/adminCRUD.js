@@ -78,7 +78,6 @@ const addAdmin = async (req, res) => {
 };
 
 const updateAdmin = async (req, res) => {
-  console.log("req.body.data", req.body.data);
   const isValid = updateAdminValidation(req.body.data);
 
   if (!isValid.error) {

@@ -4,6 +4,20 @@ const { attemptSchema } = require("../models/attempt_log");
 const { users } = require("../models/userDBSchema");
 const { questions } = require("../models/questionDBSchema");
 const { resultSchema } = require("../models/resultSchema");
+const { admin } = require("../models/adminSchema");
+
+const isAdmin = async (id) => {
+  try {
+    const adminId = new ObjectId(id);
+    const query = await admin.findById(adminId, { _id: 0, password: 0 });
+
+    if (await query) {
+      return query;
+    }
+  } catch (error) {
+    res.send({ status: false, message: error.message });
+  }
+};
 
 const validate = async (user_id, quizCode) => {
   try {
@@ -190,7 +204,7 @@ const isResult = async (user_id, quizCode) => {
   try {
     const query = await resultSchema.findOne({ user_id, quizCode });
     if (query.length !== 0) {
-      return { status: true, message: query };
+      return { status: true, data: query, message: "Quiz already attempted!" };
     } else {
       return { status: false, message: "No result found!" };
     }
@@ -201,7 +215,7 @@ const isResult = async (user_id, quizCode) => {
 
 const addResult = async (obj) => {
   try {
-    const checkResult = isResult(obj.user_id, obj.quizCode);
+    const checkResult = await isResult(obj.user_id, obj.quizCode);
 
     if (checkResult.status) {
       return checkResult;
@@ -237,4 +251,56 @@ const getResult = async (req, res) => {
   }
 };
 
-module.exports = { getResult };
+const leaderBoard = async (req, res) => {
+  try {
+    const { token, quizCode } = req.body;
+
+    const id = decryptToken(token);
+    if (!id.status) {
+      res.send({ status: false, message: id.message });
+    }
+
+    const checkAdmin = await isAdmin(id.token);
+
+    if (checkAdmin) {
+      const query = await resultSchema.aggregate([
+        {
+          $match: {
+            quizCode: quizCode,
+          },
+        },
+        {
+          $group: {
+            _id: "$user_id",
+            name: { $first: "$name" },
+            totalScore: { $sum: "$totalScore" },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            name: 1,
+            totalScore: 1,
+          },
+        },
+        {
+          $sort: {
+            totalScore: -1, // Sort by totalScore field in descending order
+          },
+        },
+      ]);
+
+      if (query !== null) {
+        res.send({ status: true, list: query });
+      } else {
+        res.send({ status: false, message: "No participants yet!" });
+      }
+    } else {
+      res.send({ status: false, message: "User does not exists!" });
+    }
+  } catch (error) {
+    return { status: false, message: error.message };
+  }
+};
+
+module.exports = { getResult, leaderBoard };
