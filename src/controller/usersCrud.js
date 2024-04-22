@@ -34,8 +34,9 @@ const isQuizAttempted = async (email, quizCode) => {
 const isQuizExist = async (quizCode) => {
   try {
     const query = await quizzes.findOne({ quizCode });
+    console.log("query", query);
 
-    if (query) {
+    if (query !== null) {
       return { status: true, message: "Quiz exists" };
     } else {
       return { status: false, message: "Quiz not exists" };
@@ -65,9 +66,8 @@ const addUser = async (req, res) => {
       quizCode: req.body.quizCode,
     };
 
-    console.log("isQuiz", isQuiz);
-    console.log("isUser", isUser);
-    console.log("attempted", attempted);
+    // console.log("isUser", isUser);
+    // console.log("attempted", attempted);
 
     if (isQuiz.status) {
       try {
@@ -139,6 +139,9 @@ const addUser = async (req, res) => {
         res.send({ status: false, message: errors });
       }
     } else {
+      // console.log("called");
+      // console.log("isQuiz", isQuiz);
+
       res.send(isQuiz);
     }
   } else {
@@ -267,9 +270,11 @@ const getQuizData = async (req, res) => {
       {
         $unwind: "$questions",
       },
+
       {
         $group: {
           _id: null,
+          quizTime: { $first: "$quizTime" },
           allQuestions: {
             $push: {
               _id: "$questions._id",
@@ -282,6 +287,7 @@ const getQuizData = async (req, res) => {
       {
         $project: {
           _id: 0,
+          quizTime: 1,
           allQuestions: 1,
         },
       },

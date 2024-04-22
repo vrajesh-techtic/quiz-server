@@ -286,6 +286,7 @@ const leaderBoard = async (req, res) => {
         {
           $sort: {
             totalScore: -1, // Sort by totalScore field in descending order
+            name: 1,
           },
         },
       ]);

@@ -53,6 +53,7 @@ const isQuiz = async (req, res) => {
         $group: {
           _id: "$_id",
           quizName: { $first: "$quizName" },
+          quizTime: { $first: "$quizTime" },
           deptName: { $first: "$deptName" },
           admin_id: { $first: "$deptData.admin_id" },
         },
@@ -75,6 +76,19 @@ const isQuiz = async (req, res) => {
   }
 };
 
+const isQuizExist = async (quizCode) => {
+  try {
+    const findQuiz = await quizzes.findOne({ quizCode });
+    if (findQuiz === null) {
+      return { status: false, message: "Quiz not found!" };
+    } else {
+      return { status: true, message: "Quiz found!" };
+    }
+  } catch (error) {
+    return { status: false, message: error.message };
+  }
+};
+
 /*
 
 Required Parameters:
@@ -88,60 +102,52 @@ Required Parameters:
 
 // function to create new quiz
 const createQuiz = async (req, res) => {
-  const { quizName, quizCode, deptName } = req.body.data;
+  const { quizName, quizCode, deptName, quizTime } = req.body.data;
   const deptId = req.body.deptId;
-
   const token = req.body.token;
+
   const id = decryptToken(token);
   if (!id.status) {
     res.send({ status: false, message: id.message });
   }
   const checkAdmin = await isAdmin(id.token);
 
-  if (checkAdmin) {
-    try {
-      const quizData = { quizName, quizCode, deptName, deptId };
-
-      const query = await quizzes.create(quizData);
-
-      if (query) {
-        res.send({ status: true, message: " Quiz created Successfully!" });
-      }
-    } catch (error) {
-      res.send({ status: false, message: "Quiz already exists" });
-    }
+  const checkQuiz = (await isQuizExist(quizCode)).status;
+  if (checkQuiz) {
+    res.send(await updateQuiz(quizCode, quizName, quizTime));
   } else {
-    res.send({ status: false, message: "User does not exists!" });
+    if (checkAdmin) {
+      try {
+        const quizData = { quizName, quizCode, deptName, deptId, quizTime };
+
+        const query = await quizzes.create(quizData);
+
+        if (query) {
+          res.send({ status: true, message: " Quiz created Successfully!" });
+        }
+      } catch (error) {
+        res.send({ status: false, message: "Quiz already exists" });
+      }
+    } else {
+      res.send({ status: false, message: "User does not exists!" });
+    }
   }
 };
 
-const updateQuiz = async (req, res) => {
-  const quizCode = req.body.quizCode;
-  const newQuizName = req.body.quizName;
-  const token = req.body.token;
-  const id = decryptToken(token);
-  if (!id.status) {
-    res.send({ status: false, message: id.message });
-  }
-  const checkAdmin = await isAdmin(id.token);
+const updateQuiz = async (quizCode, quizName, quizTime) => {
+  try {
+    const query = await quizzes.findOneAndUpdate(
+      { quizCode },
+      { quizName, quizTime }
+    );
 
-  if (checkAdmin) {
-    try {
-      const query = await quizzes.findOneAndUpdate(
-        { quizCode },
-        { quizName: newQuizName }
-      );
-
-      if (query) {
-        res.send({ status: true, message: " Quiz name updated!" });
-      } else {
-        res.send({ status: false, message: "Quiz not found!" });
-      }
-    } catch (error) {
-      res.send({ status: false, message: "Quiz not found!" });
+    if (query) {
+      return { status: true, message: " Quiz data updated!" };
+    } else {
+      return { status: false, message: "Quiz not found!" };
     }
-  } else {
-    res.send({ status: false, message: "User does not exists!" });
+  } catch (error) {
+    return { status: false, message: "Quiz not found!" };
   }
 };
 

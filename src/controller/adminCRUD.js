@@ -303,6 +303,127 @@ const loginAdmin = async (req, res) => {
   }
 };
 
+const insights = async (req, res) => {
+  const token = req.body.token;
+  const id = decryptToken(token);
+  if (!id.status) {
+    res.send({ status: false, message: id.message });
+  }
+
+  const checkAdmin = await isAdmin(id.token);
+
+  if (checkAdmin) {
+    try {
+      const query = await admin.aggregate([
+        {
+          $match: {
+            _id: new ObjectId(id.token),
+          },
+        },
+        {
+          $lookup: {
+            from: "departments",
+            localField: "_id",
+            foreignField: "admin_id",
+            as: "departments",
+          },
+        },
+        {
+          $addFields: {
+            totalDepartments: {
+              $cond: {
+                if: { $isArray: "$departments" },
+                then: { $size: "$departments" },
+                else: 0,
+              },
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "quizzes",
+            localField: "departments._id",
+            foreignField: "deptId",
+            as: "quizzes",
+          },
+        },
+        {
+          $addFields: {
+            totalQuizzes: {
+              $cond: {
+                if: { $isArray: "$quizzes" },
+                then: { $size: "$quizzes" },
+                else: 0,
+              },
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "results",
+            let: { quizCodes: "$quizzes.quizCode" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $in: ["$quizCode", "$$quizCodes"] },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  totalParticipants: { $sum: 1 },
+                },
+              },
+            ],
+            as: "participants",
+          },
+        },
+        {
+          $addFields: {
+            totalParticipants: { $sum: "$participants.totalParticipants" },
+          },
+        },
+        {
+          $group: {
+            _id: "$_id",
+            name: { $first: "$name" },
+            email: { $first: "$email" },
+            username: { $first: "$username" },
+            totalDepartments: { $max: "$totalDepartments" },
+            totalQuizzes: { $max: "$totalQuizzes" },
+            totalParticipants: { $max: "$totalParticipants" },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            name: 1,
+            email: 1,
+            username: 1,
+            totalDepartments: 1,
+            totalQuizzes: 1,
+            totalParticipants: 1,
+          },
+        },
+      ]);
+
+      if (query.length !== 0) {
+        res.send({ status: true, data: query[0], message: "Insights fetched" });
+      } else {
+        res.send({
+          status: false,
+          data: query,
+          message: "No data found!",
+        });
+      }
+    } catch (error) {
+      res.send({ status: false, message: error.message });
+    }
+  } else {
+    res.send({ status: false, message: "User does not exists!" });
+  }
+};
+
 module.exports = {
   addAdmin,
   updateAdmin,
@@ -310,4 +431,5 @@ module.exports = {
   getDeptList,
   deleteAdmin,
   loginAdmin,
+  insights
 };

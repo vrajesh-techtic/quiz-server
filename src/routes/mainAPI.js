@@ -36,6 +36,7 @@ const {
   getDeptList,
   deleteAdmin,
   loginAdmin,
+  insights,
 } = require("../controller/adminCRUD");
 const {
   sendOTP,
@@ -58,6 +59,8 @@ routes.post("/update-admin", updateAdmin);
 routes.post("/delete-admin", deleteAdmin);
 
 routes.post("/get-admin", getAdmin);
+
+routes.post("/insights", insights);
 
 routes.post("/gen-token", generateToken);
 

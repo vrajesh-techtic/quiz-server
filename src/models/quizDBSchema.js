@@ -32,6 +32,11 @@ const quizSchema = new Schema(
       type: ObjectId,
       required: true,
     },
+
+    quizTime: {
+      type: Number,
+      required: true,
+    },
   },
   { versionKey: false }
 );
