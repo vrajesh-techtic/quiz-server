@@ -3,6 +3,7 @@ const {
   getUser,
   verifyOTP,
   deleteUser,
+  getQuizData,
 } = require("../controller/usersCrud");
 const express = require("express");
 const { sendEmail } = require("../services/emailOTP");
@@ -15,16 +16,63 @@ const {
   totalQuestions,
   findQuestion,
 } = require("../controller/questionsCRUD");
-const {
-  createQuiz,
-  deleteQuiz,
-  getQuiz,
-  updateQuiz,
-} = require("../controller/quizzesCRUD");
+// const {
+//   createQuiz,
+//   deleteQuiz,
+//   getQuiz,
+//   updateQuiz,
+// } = require("../controller/quizzesCRUD");
 const { loginUser, logoutUser } = require("../controller/participantAuth");
-const { createDept, getAllDept } = require("../controller/deptCRUD");
+const {
+  createDept,
+  deptList,
+  getQuizList,
+  deleteDept,
+} = require("../controller/deptCRUD");
+const {
+  addAdmin,
+  updateAdmin,
+  getAdmin,
+  getDeptList,
+  deleteAdmin,
+  loginAdmin,
+  insights,
+} = require("../controller/adminCRUD");
+const {
+  sendOTP,
+  verifyAdminOTP,
+  verifyUser,
+} = require("../controller/otpCRUD");
+const { generateToken, decryptToken } = require("../middleware/authMiddleware");
+const { createQuiz, isQuiz, updateQuiz } = require("../controller/quizzesCRUD");
+const { addLog } = require("../controller/attemptLogController");
+const { getResult, leaderBoard } = require("../controller/resultController");
 
 const routes = express.Router();
+
+routes.post("/add-admin", addAdmin);
+
+routes.post("/login-admin", loginAdmin);
+
+routes.post("/update-admin", updateAdmin);
+
+routes.post("/delete-admin", deleteAdmin);
+
+routes.post("/get-admin", getAdmin);
+
+routes.post("/insights", insights);
+
+routes.post("/gen-token", generateToken);
+
+routes.post("/verify-token", decryptToken);
+
+// for sending OTP to send admin OTP Schema
+routes.post("/send-otp", sendOTP);
+
+// for sending OTP to verify admin OTP Schema
+routes.post("/verify-otp", verifyAdminOTP);
+
+routes.post("/verify-user", verifyUser);
 
 //API to send email
 routes.post("/send-email", sendEmail);
@@ -33,13 +81,15 @@ routes.post("/send-email", sendEmail);
 routes.post("/add-user", addUser);
 
 //API to verify otp
-routes.post("/verify-otp", verifyOTP);
+// routes.post("/verify-otp", verifyOTP);
 
 // API to get user data
 routes.post("/get-user", getUser);
 
 // API to delete user
 routes.post("/delete-user", deleteUser);
+
+routes.post("/get-quiz-data", getQuizData);
 
 // API to check whether user is authenticated to access data or not
 routes.post("/login-user", loginUser);
@@ -53,13 +103,13 @@ routes.post("/add-question", addQuestion);
 // API to get all questions from database
 routes.post("/get-all-questions", getAllQuestions);
 
-routes.get("/count-questions", totalQuestions);
+routes.post("/count-questions", totalQuestions);
 
 // API to fetch particular question
-routes.post("/get-question:id", getSpecificQuestion);
+routes.post("/get-question", getSpecificQuestion);
 
 // API to delete particular question
-routes.post("/delete-question:id", deleteQuestion);
+routes.post("/delete-question", deleteQuestion);
 
 // API to update particular question
 routes.post("/update-question", updateQuestion);
@@ -69,17 +119,28 @@ routes.post("/find-question", findQuestion);
 //API to create new  quiz
 routes.post("/create-quiz", createQuiz);
 
-// API to delete particular quiz
-routes.post("/delete-quiz:id", deleteQuiz);
+// // API to delete particular quiz
+// routes.post("/delete-quiz:id", deleteQuiz);
 
 //API to get quiz data
-routes.post("/get-quiz:id", getQuiz);
+routes.post("/get-quiz", isQuiz);
 
-//API to update quiz
-routes.post("/update-quiz:id", updateQuiz);
+// //API to update quiz
+routes.post("/update-quiz", updateQuiz);
 
 routes.post("/create-dept", createDept);
+routes.post("/delete-dept", deleteDept);
 
-routes.get("/get-dept-list", getAllDept);
+routes.post("/get-dept-list", deptList);
+
+routes.post("/get-library", getDeptList);
+
+routes.post("/get-quiz-list", getQuizList);
+
+routes.post("/attempt-question", addLog);
+
+routes.post("/get-result", getResult);
+
+routes.post("/leaderboard", leaderBoard);
 
 module.exports = routes;

@@ -5,10 +5,11 @@ const cors = require("cors");
 const morgan = require("morgan");
 const routes = require("./routes/mainAPI");
 const { connectDB } = require("./config/db");
+const cookieParser = require("cookie-parser");
 
 app.use(cors({ origin: "*" }));
 app.use(express.json());
-
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use("", routes);
 

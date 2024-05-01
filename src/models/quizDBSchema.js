@@ -1,3 +1,4 @@
+const { ObjectId } = require("mongodb");
 const mongoose = require("mongoose");
 
 const { Schema } = mongoose;
@@ -27,10 +28,15 @@ const quizSchema = new Schema(
       required: true,
     },
 
-    // questionList: {
-    //   type: Array,
-    //   default: [],
-    // },
+    deptId: {
+      type: ObjectId,
+      required: true,
+    },
+
+    quizTime: {
+      type: Number,
+      required: true,
+    },
   },
   { versionKey: false }
 );

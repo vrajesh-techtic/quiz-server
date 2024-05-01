@@ -6,7 +6,6 @@ const questionSchema = new Schema(
   {
     quizCode: {
       type: String,
-      unique: true,
       validate: {
         validator: function (v) {
           if (v.length === 6) return true;
@@ -27,8 +26,9 @@ const questionSchema = new Schema(
       default: [],
       required: true,
     },
+
     correctAns: {
-      type: String,
+      type: Number,
       required: true,
     },
   },

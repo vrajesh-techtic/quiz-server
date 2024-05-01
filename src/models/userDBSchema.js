@@ -13,12 +13,9 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    isAuth: {
-      type: Boolean,
-      required: true,
-    },
-    otp: {
+    quizzes: {
       type: Array,
+      required: true,
       default: [],
     },
   },
